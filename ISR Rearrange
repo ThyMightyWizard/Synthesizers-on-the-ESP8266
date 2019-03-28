@@ -1,0 +1,10 @@
+#include <Arduino.h> 
+#include "ESP8266WiFi.h"
+#include <i2s.h>
+#include <i2s_reg.h>
+#include <pgmspace.h>
+#include <Ticker.h>
+uint32_t i2sACC;
+uint8_t i2sCNT=32;
+uint16_t DAC=0x8000;
+uint16_t err;
