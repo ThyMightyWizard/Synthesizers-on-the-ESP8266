@@ -1,4 +1,4 @@
-Since the DMA Engine has moved to ISR the code should look like
+Since the DMA Engine has moved to ISR it will look like this now
 
 
 void ICACHE_RAM_ATTR onTimerISR(){ //Code needs to be in IRAM because its a ISR
