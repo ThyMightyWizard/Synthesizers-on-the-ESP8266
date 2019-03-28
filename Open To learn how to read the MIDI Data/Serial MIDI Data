@@ -1,0 +1,85 @@
+How do we actually read the MIDI data? Our serial port is used by the i2s stream so cant be used as a serial port.
+
+We do this by moving the RX and TX pins to the alternate pins.
+
+Serial.swap();
+
+
+This moves the RX pin to GPIO13 and the TX pin to GPIO15.
+
+You need to setup the serial port before you start the i2s engine because the serial setup will destroy the i2s GPIO setup.
+
+
+void setup() {
+  Serial.begin(31250); //Start the serial port with default MIDI baudrate
+  Serial.swap(); //Move the TX and RX GPIOs to 15 and 13
+  i2s_begin(); //Start the i2s DMA engine
+  i2s_set_rate(44100); //Set sample rate
+  pinMode(2, INPUT); //restore GPIOs taken by i2s
+  pinMode(15, INPUT);
+  timer1_attachInterrupt(onTimerISR); //Attach our sampling ISR
+  timer1_enable(TIM_DIV16, TIM_EDGE, TIM_SINGLE);
+  timer1_write(2000); //Service at 2mS intervall
+}
+
+
+Add the MIDI process definitions.
+
+uint8_t MIDISTATE=0;
+uint8_t MIDIRUNNINGSTATUS=0;
+uint8_t MIDINOTE;
+uint8_t MIDIVEL;
+
+
+And the MIDI processor.
+
+
+void processMIDI(uint8_t MIDIRX) {
+/*
+Handling “Running status”
+1.Buffer is cleared (ie, set to 0) at power up.
+2.Buffer stores the status when a Voice Category Status (ie, 0x80 to 0xEF) is received.
+3.Buffer is cleared when a System Common Category Status (ie, 0xF0 to 0xF7) is received.
+4.Nothing is done to the buffer when a RealTime Category message is received.
+5.Any data bytes are ignored when the buffer is 0.
+*/
+if ((MIDIRX>0xBF)&&(MIDIRX<0xF8)) {
+ MIDIRUNNINGSTATUS=0;
+ MIDISTATE=0;
+ return;
+}
+if (MIDIRX>0xF7) return;
+if (MIDIRX & 0x80) {
+  MIDIRUNNINGSTATUS=MIDIRX;
+  MIDISTATE=1;
+return;
+}
+if (MIDIRX < 0x80) {
+  if (!MIDIRUNNINGSTATUS) return;
+  if (MIDISTATE==1) {
+  MIDINOTE=MIDIRX;
+  MIDISTATE++;
+  return;
+}
+if (MIDISTATE==2) {
+  MIDIVEL=MIDIRX;
+  MIDISTATE=1;
+  //if (MIDIRUNNINGSTATUS==0x80) handleMIDInoteOFF(MIDIRUNNINGSTATUS,MIDINOTE,MIDIVEL);
+  //if (MIDIRUNNINGSTATUS==0x90) handleMIDInoteON(MIDIRUNNINGSTATUS,MIDINOTE,MIDIVEL);
+  //if (MIDIRUNNINGSTATUS==0xB0) handleMIDICC(MIDINOTE,MIDIVEL);
+}
+}
+}
+
+
+You need to add the handlers for noteOFF, noteON and MIDICC.
+
+Now we can process incoming MIDI bytes in the main loop.
+
+
+void loop() {
+  if (Serial.available()) processMIDI(Serial.read());
+}
+
+
+Now you can apply our new DMA engine and serial MIDI processor on the simple drum player and play it from a keyboard or sequencer.
