@@ -1,0 +1,22 @@
+Since the DMA Engine has moved to ISR the code should look like
+
+
+void ICACHE_RAM_ATTR onTimerISR(){ //Code needs to be in IRAM because its a ISR
+while (!(i2s_is_full())) { //Don’t block the ISR if the buffer is full
+DAC=0x8000+sine[phase++];
+//Pulse Density Modulated 16-bit I2S DAC
+for (uint8_t i=0;i<32;i++) { 
+  i2sACC=i2sACC<<1;
+  if(DAC >= err) {
+    i2sACC|=1;
+    err += 0xFFFF-DAC;
+  }
+    else
+  {
+    err -= DAC;
+  }
+ }
+ bool flag=i2s_write_sample(i2sACC);
+}
+timer1_write(2000);//Next in 2mS
+}
