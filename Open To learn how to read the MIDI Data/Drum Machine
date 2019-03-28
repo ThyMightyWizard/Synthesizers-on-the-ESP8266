@@ -1,0 +1,49 @@
+#include <Arduino.h> 
+#include "ESP8266WiFi.h"
+#include <WiFiClient.h>
+#include <WiFiUdp.h>
+#include <i2s.h>
+#include <i2s_reg.h>
+#include <pgmspace.h>
+#include "AppleMidi.h"
+#include <Ticker.h>
+extern “C” {
+#include “user_interface.h”
+}
+char ssid[] = "YourSSID"; //  your network SSID (name)
+char pass[] = "YourKEY";    // your network password (use for WPA, or use as key for WEP)
+APPLEMIDI_CREATE_INSTANCE(WiFiUDP, AppleMIDI); // see definition in AppleMidi_Defs.h
+// Forward declaration
+void OnAppleMidiConnected(uint32_t ssrc, char* name);
+void OnAppleMidiDisconnected(uint32_t ssrc);
+void OnAppleMidiNoteOn(byte channel, byte note, byte velocity);
+void OnAppleMidiNoteOff(byte channel, byte note, byte velocity);
+uint32_t i2sACC;
+uint8_t i2sCNT=32;
+uint16_t DAC=0x8000;
+uint16_t err;
+uint32_t BD16CNT;
+uint32_t CP16CNT;
+uint32_t CR16CNT;
+uint32_t HH16CNT;
+uint32_t HT16CNT;
+uint32_t LT16CNT;
+uint32_t MT16CNT;
+uint32_t CH16CNT;
+uint32_t OH16CNT;
+uint32_t RD16CNT;
+uint32_t RS16CNT;
+uint32_t SD16CNT;
+#define BD16LEN 3796UL
+#define CP16LEN 4445UL
+#define CR16LEN 48686UL
+#define HH16LEN 1734UL
+#define HT16LEN 5802UL
+#define LT16LEN 7061UL
+#define MT16LEN 7304UL
+#define OH16LEN 4772UL
+#define RD16LEN 52850UL
+#define RS16LEN 1316UL
+#define SD16LEN 5577UL
+const uint16_t BD16[3796] PROGMEM = {
+40, 85, 137, 144, -30, -347, -609, -785, // 0-7
