@@ -1,0 +1,18 @@
+void setup() {
+i2s_begin(); //Start the i2s DMA engine
+i2s_set_rate(44100); //Set sample rate
+pinMode(2, INPUT); //restore GPIOs taken by i2s
+pinMode(15, INPUT);
+timer1_attachInterrupt(onTimerISR); //Attach our sampling ISR
+timer1_enable(TIM_DIV16, TIM_EDGE, TIM_SINGLE);
+timer1_write(2000); //Service at 2mS intervall
+}
+
+
+
+>The main loop will now be empty<
+
+Example: 
+
+void loop() {
+}
