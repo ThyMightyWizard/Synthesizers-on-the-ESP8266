@@ -1,0 +1,4 @@
+uint8_t phase;
+  void loop() {
+  writeDAC(0x8000+sine[phase++]);
+}
